@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seinfeld Conception Calculator</title>
+  <style>
+    /* ===================== RESET & BASE ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0a;
+      --card:      #111122;
+      --gold:      #f5c518;
+      --red:       #e63946;
+      --text:      #f0f0e8;
+      --muted:     #888899;
+      --border:    #2a2a44;
+      --glow:      rgba(245, 197, 24, 0.15);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    /* ===================== LAYOUT ===================== */
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    main {
+      width: 100%;
+      max-width: 620px;
+    }
+
+    /* ===================== HEADER ===================== */
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-top: 1rem;
+    }
+
+    .header-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: Impact, 'Arial Black', sans-serif;
+      font-size: clamp(2rem, 7vw, 3.5rem);
+      letter-spacing: 0.03em;
+      line-height: 1;
+      color: var(--gold);
+      text-shadow: 0 0 40px rgba(245,197,24,0.4), 0 2px 0 #000;
+      text-transform: uppercase;
+    }
+
+    .header-sub {
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* TV static decoration */
+    .tv-icon {
+      display: block;
+      margin: 0 auto 1.2rem;
+      width: 56px;
+      opacity: 0.7;
+    }
+
+    /* ===================== INPUT PANEL ===================== */
+    #input-panel {
+      text-align: center;
+    }
+
+    .prompt-line {
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    #birthday-input {
+      background: #0d0d1a;
+      border: 2px solid var(--border);
+      color: var(--gold);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 1.4rem;
+      padding: 0.8rem 1.4rem;
+      text-align: center;
+      outline: none;
+      border-radius: 4px;
+      width: 240px;
+      letter-spacing: 0.05em;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+      cursor: pointer;
+    }
+
+    #birthday-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 20px var(--glow);
+    }
+
+    /* shake for empty submission */
+    #birthday-input.shake {
+      animation: shake 0.4s ease;
+    }
+
+    #calc-btn {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      font-family: Impact, 'Arial Black', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.85rem 2.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+      box-shadow: 0 4px 0 #9a7e00, 0 6px 20px rgba(0,0,0,0.5);
+      width: 240px;
+    }
+
+    #calc-btn:hover {
+      background: #ffd740;
+      box-shadow: 0 4px 0 #9a7e00, 0 8px 30px rgba(245,197,24,0.3);
+    }
+
+    #calc-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #9a7e00, 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    #calc-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #input-error {
+      font-size: 0.78rem;
+      color: var(--red);
+      min-height: 1.2em;
+      letter-spacing: 0.05em;
+    }
+
+    /* ===================== LOADING ===================== */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 2.5rem 0;
+    }
+
+    .loading-text {
+      font-size: 0.9rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+    }
+
+    .blink {
+      animation: blink 0.7s step-end infinite;
+    }
+
+    /* ===================== RESULT PANEL ===================== */
+    #result-panel {
+      display: none;
+      margin-top: 2rem;
+    }
+
+    #result-panel.visible {
+      display: block;
+      animation: fadeSlideUp 0.5s ease forwards;
+    }
+
+    .result-card {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem 2rem 1.8rem;
+      overflow: hidden;
+    }
+
+    /* Scanline overlay */
+    .result-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.06) 2px,
+        rgba(0,0,0,0.06) 4px
+      );
+      pointer-events: none;
+      border-radius: 8px;
+    }
+
+    /* Top accent bar */
+    .result-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), #ffd740, var(--gold));
+    }
+
+    .result-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .result-episode-title {
+      font-family: Impact, 'Arial Black', sans-serif;
+      font-size: clamp(1.8rem, 6vw, 2.8rem);
+      color: var(--gold);
+      line-height: 1.1;
+      margin-bottom: 0.6rem;
+      text-shadow: 0 0 30px rgba(245,197,24,0.3);
+      word-break: break-word;
+    }
+
+    .result-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      margin-bottom: 1.2rem;
+    }
+
+    .result-meta span {
+      color: #aaaacc;
+    }
+
+    .result-timing {
+      font-size: 0.88rem;
+      color: var(--text);
+      margin-bottom: 0.8rem;
+      line-height: 1.6;
+    }
+
+    .result-quip {
+      font-family: Impact, 'Arial Black', sans-serif;
+      font-size: clamp(1.2rem, 4vw, 1.75rem);
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 1.2rem;
+    }
+
+    .wiki-btn {
+      display: inline-block;
+      background: transparent;
+      border: 2px solid var(--gold);
+      color: var(--gold);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.65rem 1.4rem;
+      border-radius: 4px;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .wiki-btn:hover {
+      background: var(--gold);
+      color: #000;
+    }
+
+    /* Multi-episode list */
+    .ep-list {
+      list-style: none;
+      margin: 0 0 1.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .ep-item {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.9rem 1rem;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .ep-item-title {
+      font-family: Impact, 'Arial Black', sans-serif;
+      font-size: 1.25rem;
+      color: var(--gold);
+      line-height: 1.1;
+      margin-bottom: 0.25rem;
+    }
+
+    .ep-item-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.04em;
+    }
+
+    .ep-item-quip {
+      font-size: 0.78rem;
+      color: #aaaacc;
+      font-style: italic;
+      margin-bottom: 0.55rem;
+    }
+
+    .ep-item-link {
+      font-size: 0.7rem;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .ep-item-link:hover { color: #ffd740; }
+
+    /* Hiatus notice */
+    .hiatus-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 1.2rem;
+      padding: 0.75rem 1rem;
+      border: 1px dashed var(--border);
+      border-radius: 4px;
+    }
+
+    /* Others toggle */
+    .others-wrap {
+      margin-top: 1.6rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+
+    .others-toggle {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.15s;
+    }
+
+    .others-toggle:hover { color: var(--text); }
+
+    .ep-list {
+      list-style: none;
+      margin-top: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .reset-link {
+      display: block;
+      margin-top: 1.4rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .reset-link:hover { color: var(--text); }
+
+    /* ===================== OUT OF RANGE ===================== */
+    .oor-card {
+      position: relative;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .oor-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--red), #ff6b6b, var(--red));
+    }
+
+    .oor-no {
+      font-family: Impact, 'Arial Black', sans-serif;
+      font-size: clamp(2rem, 7vw, 3rem);
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+      text-shadow: 0 0 30px rgba(230, 57, 70, 0.4);
+    }
+
+    .oor-msg {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 380px;
+      margin: 0 auto 1.6rem;
+    }
+
+    /* ===================== FOOTER ===================== */
+    footer {
+      margin-top: auto;
+      padding-top: 3rem;
+      font-size: 0.7rem;
+      color: #444455;
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    /* ===================== ANIMATIONS ===================== */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-8px); }
+      40%       { transform: translateX(8px); }
+      60%       { transform: translateX(-6px); }
+      80%       { transform: translateX(6px); }
+    }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 480px) {
+      #birthday-input, #calc-btn { width: 100%; }
+      .input-wrap { width: 100%; }
+      .result-card, .oor-card { padding: 1.5rem 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <svg class="tv-icon" viewBox="0 0 64 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="4" y="2" width="56" height="36" rx="4" fill="#1a1a2e" stroke="#f5c518" stroke-width="2"/>
+      <rect x="10" y="8" width="44" height="24" rx="2" fill="#0a0a0a" stroke="#2a2a44" stroke-width="1"/>
+      <line x1="20" y1="38" x2="14" y2="46" stroke="#f5c518" stroke-width="2" stroke-linecap="round"/>
+      <line x1="44" y1="38" x2="50" y2="46" stroke="#f5c518" stroke-width="2" stroke-linecap="round"/>
+      <line x1="12" y1="46" x2="52" y2="46" stroke="#f5c518" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="54" cy="12" r="3" fill="#f5c518" opacity="0.6"/>
+      <circle cx="54" cy="22" r="3" fill="#333355"/>
+      <line x1="22" y1="12" x2="40" y2="20" stroke="#f5c518" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+    </svg>
+    <p class="header-eyebrow">a show about nothing... including your existence</p>
+    <h1>Seinfeld Conception<br>Calculator</h1>
+    <p class="header-sub">Enter your birthday, we do the math: you're welcome.</p>
+  </header>
+
+  <main>
+    <section id="input-panel">
+      <p class="prompt-line">When were you born?</p>
+      <div class="input-wrap">
+        <input type="date" id="birthday-input" aria-label="Your birthday">
+        <div id="input-error" aria-live="polite"></div>
+        <button id="calc-btn">Calculate My Origins</button>
+        <p style="font-size:0.65rem;color:#444455;letter-spacing:0.08em;margin-top:0.2rem;">your birthday never leaves this page</p>
+      </div>
+    </section>
+
+    <section id="loading" aria-live="polite">
+      <p class="loading-text">RUNNING THE NUMBERS<span class="blink">_</span></p>
+    </section>
+
+    <section id="result-panel" aria-live="polite"></section>
+  </main>
+
+  <footer>
+    SEINFELD &copy; 1989–1998 NBC / Castle Rock Entertainment &nbsp;&bull;&nbsp; This tool is a joke. Please don't sue.
+    <br><br>
+    inspired by <a href="https://youtu.be/41vKRsKISyQ?si=lloEi7D1jUQVmmPe&t=75" target="_blank" rel="noopener noreferrer" style="color:#555566;text-decoration:underline;text-underline-offset:3px;">this moment</a> from cinemassacre &mdash; &ldquo;actually, i did the math on your birthday. this is the seinfeld episode you would have been conceived during.&rdquo;
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// EPISODE DATA — 180 episodes, sorted chronologically
+// ============================================================
+const EPISODES = [
+  // --- SEASON 1 ---
+  { season:1, episode:1,  overall:1,   title:"The Seinfeld Chronicles", airDate:"1989-07-05", wikiUrl:"https://en.wikipedia.org/wiki/The_Seinfeld_Chronicles" },
+  { season:1, episode:2,  overall:2,   title:"The Stake Out",            airDate:"1990-05-31", wikiUrl:"https://en.wikipedia.org/wiki/The_Stake_Out_(Seinfeld)" },
+  { season:1, episode:3,  overall:3,   title:"The Robbery",              airDate:"1990-06-07", wikiUrl:"https://en.wikipedia.org/wiki/The_Robbery_(Seinfeld)" },
+  { season:1, episode:4,  overall:4,   title:"Male Unbonding",           airDate:"1990-06-14", wikiUrl:"https://en.wikipedia.org/wiki/Male_Unbonding" },
+  { season:1, episode:5,  overall:5,   title:"The Stock Tip",            airDate:"1990-06-21", wikiUrl:"https://en.wikipedia.org/wiki/The_Stock_Tip" },
+
+  // --- SEASON 2 ---
+  { season:2, episode:1,  overall:6,   title:"The Ex-Girlfriend",        airDate:"1991-01-23", wikiUrl:"https://en.wikipedia.org/wiki/The_Ex-Girlfriend_(Seinfeld)" },
+  { season:2, episode:2,  overall:7,   title:"The Pony Remark",          airDate:"1991-01-30", wikiUrl:"https://en.wikipedia.org/wiki/The_Pony_Remark" },
+  { season:2, episode:3,  overall:8,   title:"The Jacket",               airDate:"1991-02-06", wikiUrl:"https://en.wikipedia.org/wiki/The_Jacket_(Seinfeld)" },
+  { season:2, episode:4,  overall:9,   title:"The Phone Message",        airDate:"1991-02-13", wikiUrl:"https://en.wikipedia.org/wiki/The_Phone_Message" },
+  { season:2, episode:5,  overall:10,  title:"The Apartment",            airDate:"1991-04-04", wikiUrl:"https://en.wikipedia.org/wiki/The_Apartment_(Seinfeld)" },
+  { season:2, episode:6,  overall:11,  title:"The Statue",               airDate:"1991-04-11", wikiUrl:"https://en.wikipedia.org/wiki/The_Statue_(Seinfeld)" },
+  { season:2, episode:7,  overall:12,  title:"The Revenge",              airDate:"1991-04-18", wikiUrl:"https://en.wikipedia.org/wiki/The_Revenge_(Seinfeld)" },
+  { season:2, episode:8,  overall:13,  title:"The Heart Attack",         airDate:"1991-04-25", wikiUrl:"https://en.wikipedia.org/wiki/The_Heart_Attack_(Seinfeld)" },
+  { season:2, episode:9,  overall:14,  title:"The Deal",                 airDate:"1991-05-02", wikiUrl:"https://en.wikipedia.org/wiki/The_Deal_(Seinfeld)" },
+  { season:2, episode:10, overall:15,  title:"The Baby Shower",          airDate:"1991-05-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Baby_Shower_(Seinfeld)" },
+  { season:2, episode:11, overall:16,  title:"The Chinese Restaurant",   airDate:"1991-05-23", wikiUrl:"https://en.wikipedia.org/wiki/The_Chinese_Restaurant" },
+  { season:2, episode:12, overall:17,  title:"The Busboy",               airDate:"1991-06-26", wikiUrl:"https://en.wikipedia.org/wiki/The_Busboy" },
+
+  // --- SEASON 3 ---
+  { season:3, episode:1,  overall:18,  title:"The Note",                 airDate:"1991-09-18", wikiUrl:"https://en.wikipedia.org/wiki/The_Note_(Seinfeld)" },
+  { season:3, episode:2,  overall:19,  title:"The Truth",                airDate:"1991-10-02", wikiUrl:"https://en.wikipedia.org/wiki/The_Truth_(Seinfeld)" },
+  { season:3, episode:3,  overall:20,  title:"The Pen",                  airDate:"1991-10-09", wikiUrl:"https://en.wikipedia.org/wiki/The_Pen_(Seinfeld)" },
+  { season:3, episode:4,  overall:21,  title:"The Dog",                  airDate:"1991-10-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Dog_(Seinfeld)" },
+  { season:3, episode:5,  overall:22,  title:"The Library",              airDate:"1991-10-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Library_(Seinfeld)" },
+  { season:3, episode:6,  overall:23,  title:"The Parking Garage",       airDate:"1991-10-30", wikiUrl:"https://en.wikipedia.org/wiki/The_Parking_Garage" },
+  { season:3, episode:7,  overall:24,  title:"The Cafe",                 airDate:"1991-11-06", wikiUrl:"https://en.wikipedia.org/wiki/The_Cafe_(Seinfeld)" },
+  { season:3, episode:8,  overall:25,  title:"The Tape",                 airDate:"1991-11-13", wikiUrl:"https://en.wikipedia.org/wiki/The_Tape_(Seinfeld)" },
+  { season:3, episode:9,  overall:26,  title:"The Nose Job",             airDate:"1991-11-20", wikiUrl:"https://en.wikipedia.org/wiki/The_Nose_Job_(Seinfeld)" },
+  { season:3, episode:10, overall:27,  title:"The Stranded",             airDate:"1991-11-27", wikiUrl:"https://en.wikipedia.org/wiki/The_Stranded" },
+  { season:3, episode:11, overall:28,  title:"The Alternate Side",       airDate:"1991-12-04", wikiUrl:"https://en.wikipedia.org/wiki/The_Alternate_Side" },
+  { season:3, episode:12, overall:29,  title:"The Red Dot",              airDate:"1991-12-11", wikiUrl:"https://en.wikipedia.org/wiki/The_Red_Dot" },
+  { season:3, episode:13, overall:30,  title:"The Subway",               airDate:"1992-01-08", wikiUrl:"https://en.wikipedia.org/wiki/The_Subway_(Seinfeld)" },
+  { season:3, episode:14, overall:31,  title:"The Pez Dispenser",        airDate:"1992-01-15", wikiUrl:"https://en.wikipedia.org/wiki/The_Pez_Dispenser" },
+  { season:3, episode:15, overall:32,  title:"The Suicide",              airDate:"1992-01-29", wikiUrl:"https://en.wikipedia.org/wiki/The_Suicide_(Seinfeld)" },
+  { season:3, episode:16, overall:33,  title:"The Fix-Up",               airDate:"1992-02-05", wikiUrl:"https://en.wikipedia.org/wiki/The_Fix-Up" },
+  { season:3, episode:17, overall:34,  title:"The Boyfriend, Part 1",    airDate:"1992-02-12", wikiUrl:"https://en.wikipedia.org/wiki/The_Boyfriend_(Seinfeld)" },
+  { season:3, episode:18, overall:35,  title:"The Boyfriend, Part 2",    airDate:"1992-02-12", wikiUrl:"https://en.wikipedia.org/wiki/The_Boyfriend_(Seinfeld)" },
+  { season:3, episode:19, overall:36,  title:"The Limo",                 airDate:"1992-02-26", wikiUrl:"https://en.wikipedia.org/wiki/The_Limo_(Seinfeld)" },
+  { season:3, episode:20, overall:37,  title:"The Good Samaritan",       airDate:"1992-03-04", wikiUrl:"https://en.wikipedia.org/wiki/The_Good_Samaritan_(Seinfeld)" },
+  { season:3, episode:21, overall:38,  title:"The Letter",               airDate:"1992-03-25", wikiUrl:"https://en.wikipedia.org/wiki/The_Letter_(Seinfeld)" },
+  { season:3, episode:22, overall:39,  title:"The Parking Space",        airDate:"1992-04-22", wikiUrl:"https://en.wikipedia.org/wiki/The_Parking_Space" },
+  { season:3, episode:23, overall:40,  title:"The Keys",                 airDate:"1992-05-06", wikiUrl:"https://en.wikipedia.org/wiki/The_Keys_(Seinfeld)" },
+
+  // --- SEASON 4 ---
+  { season:4, episode:1,  overall:41,  title:"The Trip, Part 1",         airDate:"1992-08-12", wikiUrl:"https://en.wikipedia.org/wiki/The_Trip_(Seinfeld)" },
+  { season:4, episode:2,  overall:42,  title:"The Trip, Part 2",         airDate:"1992-08-19", wikiUrl:"https://en.wikipedia.org/wiki/The_Trip_(Seinfeld)" },
+  { season:4, episode:3,  overall:43,  title:"The Pitch",                airDate:"1992-09-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Pitch_(Seinfeld)" },
+  { season:4, episode:4,  overall:44,  title:"The Ticket",               airDate:"1992-09-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Ticket_(Seinfeld)" },
+  { season:4, episode:5,  overall:45,  title:"The Wallet",               airDate:"1992-09-23", wikiUrl:"https://en.wikipedia.org/wiki/The_Wallet_(Seinfeld)" },
+  { season:4, episode:6,  overall:46,  title:"The Watch",                airDate:"1992-09-30", wikiUrl:"https://en.wikipedia.org/wiki/The_Watch_(Seinfeld)" },
+  { season:4, episode:7,  overall:47,  title:"The Bubble Boy",           airDate:"1992-10-07", wikiUrl:"https://en.wikipedia.org/wiki/The_Bubble_Boy_(Seinfeld)" },
+  { season:4, episode:8,  overall:48,  title:"The Cheever Letters",      airDate:"1992-10-14", wikiUrl:"https://en.wikipedia.org/wiki/The_Cheever_Letters" },
+  { season:4, episode:9,  overall:49,  title:"The Opera",                airDate:"1992-10-28", wikiUrl:"https://en.wikipedia.org/wiki/The_Opera_(Seinfeld)" },
+  { season:4, episode:10, overall:50,  title:"The Virgin",               airDate:"1992-11-11", wikiUrl:"https://en.wikipedia.org/wiki/The_Virgin_(Seinfeld)" },
+  { season:4, episode:11, overall:51,  title:"The Contest",              airDate:"1992-11-18", wikiUrl:"https://en.wikipedia.org/wiki/The_Contest" },
+  { season:4, episode:12, overall:52,  title:"The Airport",              airDate:"1992-12-02", wikiUrl:"https://en.wikipedia.org/wiki/The_Airport_(Seinfeld)" },
+  { season:4, episode:13, overall:53,  title:"The Pick",                 airDate:"1992-12-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Pick_(Seinfeld)" },
+  { season:4, episode:14, overall:54,  title:"The Movie",                airDate:"1993-01-06", wikiUrl:"https://en.wikipedia.org/wiki/The_Movie_(Seinfeld)" },
+  { season:4, episode:15, overall:55,  title:"The Visa",                 airDate:"1993-01-27", wikiUrl:"https://en.wikipedia.org/wiki/The_Visa_(Seinfeld)" },
+  { season:4, episode:16, overall:56,  title:"The Shoes",                airDate:"1993-02-04", wikiUrl:"https://en.wikipedia.org/wiki/The_Shoes_(Seinfeld)" },
+  { season:4, episode:17, overall:57,  title:"The Outing",               airDate:"1993-02-11", wikiUrl:"https://en.wikipedia.org/wiki/The_Outing_(Seinfeld)" },
+  { season:4, episode:18, overall:58,  title:"The Old Man",              airDate:"1993-02-18", wikiUrl:"https://en.wikipedia.org/wiki/The_Old_Man_(Seinfeld)" },
+  { season:4, episode:19, overall:59,  title:"The Implant",              airDate:"1993-02-25", wikiUrl:"https://en.wikipedia.org/wiki/The_Implant_(Seinfeld)" },
+  { season:4, episode:20, overall:60,  title:"The Junior Mint",          airDate:"1993-03-18", wikiUrl:"https://en.wikipedia.org/wiki/The_Junior_Mint" },
+  { season:4, episode:21, overall:61,  title:"The Smelly Car",           airDate:"1993-04-15", wikiUrl:"https://en.wikipedia.org/wiki/The_Smelly_Car" },
+  { season:4, episode:22, overall:62,  title:"The Handicap Spot",        airDate:"1993-05-13", wikiUrl:"https://en.wikipedia.org/wiki/The_Handicap_Spot" },
+  { season:4, episode:23, overall:63,  title:"The Pilot, Part 1",        airDate:"1993-05-20", wikiUrl:"https://en.wikipedia.org/wiki/The_Pilot_(Seinfeld)" },
+  { season:4, episode:24, overall:64,  title:"The Pilot, Part 2",        airDate:"1993-05-20", wikiUrl:"https://en.wikipedia.org/wiki/The_Pilot_(Seinfeld)" },
+
+  // --- SEASON 5 ---
+  { season:5, episode:1,  overall:65,  title:"The Mango",                airDate:"1993-09-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Mango_(Seinfeld)" },
+  { season:5, episode:2,  overall:66,  title:"The Puffy Shirt",          airDate:"1993-09-23", wikiUrl:"https://en.wikipedia.org/wiki/The_Puffy_Shirt" },
+  { season:5, episode:3,  overall:67,  title:"The Glasses",              airDate:"1993-09-30", wikiUrl:"https://en.wikipedia.org/wiki/The_Glasses_(Seinfeld)" },
+  { season:5, episode:4,  overall:68,  title:"The Sniffing Accountant",  airDate:"1993-10-07", wikiUrl:"https://en.wikipedia.org/wiki/The_Sniffing_Accountant" },
+  { season:5, episode:5,  overall:69,  title:"The Bris",                 airDate:"1993-10-14", wikiUrl:"https://en.wikipedia.org/wiki/The_Bris_(Seinfeld)" },
+  { season:5, episode:6,  overall:70,  title:"The Lip Reader",           airDate:"1993-10-28", wikiUrl:"https://en.wikipedia.org/wiki/The_Lip_Reader" },
+  { season:5, episode:7,  overall:71,  title:"The Non-Fat Yogurt",       airDate:"1993-11-04", wikiUrl:"https://en.wikipedia.org/wiki/The_Non-Fat_Yogurt" },
+  { season:5, episode:8,  overall:72,  title:"The Barber",               airDate:"1993-11-11", wikiUrl:"https://en.wikipedia.org/wiki/The_Barber_(Seinfeld)" },
+  { season:5, episode:9,  overall:73,  title:"The Masseuse",             airDate:"1993-11-18", wikiUrl:"https://en.wikipedia.org/wiki/The_Masseuse_(Seinfeld)" },
+  { season:5, episode:10, overall:74,  title:"The Cigar Store Indian",   airDate:"1993-12-09", wikiUrl:"https://en.wikipedia.org/wiki/The_Cigar_Store_Indian" },
+  { season:5, episode:11, overall:75,  title:"The Conversion",           airDate:"1993-12-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Conversion_(Seinfeld)" },
+  { season:5, episode:12, overall:76,  title:"The Stall",                airDate:"1994-01-06", wikiUrl:"https://en.wikipedia.org/wiki/The_Stall_(Seinfeld)" },
+  { season:5, episode:13, overall:77,  title:"The Dinner Party",         airDate:"1994-02-03", wikiUrl:"https://en.wikipedia.org/wiki/The_Dinner_Party_(Seinfeld)" },
+  { season:5, episode:14, overall:78,  title:"The Marine Biologist",     airDate:"1994-02-10", wikiUrl:"https://en.wikipedia.org/wiki/The_Marine_Biologist" },
+  { season:5, episode:15, overall:79,  title:"The Pie",                  airDate:"1994-02-17", wikiUrl:"https://en.wikipedia.org/wiki/The_Pie_(Seinfeld)" },
+  { season:5, episode:16, overall:80,  title:"The Stand-In",             airDate:"1994-02-24", wikiUrl:"https://en.wikipedia.org/wiki/The_Stand-In_(Seinfeld)" },
+  { season:5, episode:17, overall:81,  title:"The Wife",                 airDate:"1994-03-17", wikiUrl:"https://en.wikipedia.org/wiki/The_Wife_(Seinfeld)" },
+  { season:5, episode:18, overall:82,  title:"The Raincoats, Part 1",    airDate:"1994-04-28", wikiUrl:"https://en.wikipedia.org/wiki/The_Raincoats_(Seinfeld)" },
+  { season:5, episode:19, overall:83,  title:"The Raincoats, Part 2",    airDate:"1994-04-28", wikiUrl:"https://en.wikipedia.org/wiki/The_Raincoats_(Seinfeld)" },
+  { season:5, episode:20, overall:84,  title:"The Fire",                 airDate:"1994-05-05", wikiUrl:"https://en.wikipedia.org/wiki/The_Fire_(Seinfeld)" },
+  { season:5, episode:21, overall:85,  title:"The Hamptons",             airDate:"1994-05-12", wikiUrl:"https://en.wikipedia.org/wiki/The_Hamptons_(Seinfeld)" },
+  { season:5, episode:22, overall:86,  title:"The Opposite",             airDate:"1994-05-19", wikiUrl:"https://en.wikipedia.org/wiki/The_Opposite_(Seinfeld)" },
+
+  // --- SEASON 6 ---
+  { season:6, episode:1,  overall:87,  title:"The Chaperone",            airDate:"1994-09-22", wikiUrl:"https://en.wikipedia.org/wiki/The_Chaperone_(Seinfeld)" },
+  { season:6, episode:2,  overall:88,  title:"The Big Salad",            airDate:"1994-09-29", wikiUrl:"https://en.wikipedia.org/wiki/The_Big_Salad" },
+  { season:6, episode:3,  overall:89,  title:"The Pledge Drive",         airDate:"1994-10-06", wikiUrl:"https://en.wikipedia.org/wiki/The_Pledge_Drive" },
+  { season:6, episode:4,  overall:90,  title:"The Chinese Woman",        airDate:"1994-10-13", wikiUrl:"https://en.wikipedia.org/wiki/The_Chinese_Woman" },
+  { season:6, episode:5,  overall:91,  title:"The Couch",                airDate:"1994-10-27", wikiUrl:"https://en.wikipedia.org/wiki/The_Couch_(Seinfeld)" },
+  { season:6, episode:6,  overall:92,  title:"The Gymnast",              airDate:"1994-11-03", wikiUrl:"https://en.wikipedia.org/wiki/The_Gymnast_(Seinfeld)" },
+  { season:6, episode:7,  overall:93,  title:"The Soup",                 airDate:"1994-11-10", wikiUrl:"https://en.wikipedia.org/wiki/The_Soup_(Seinfeld)" },
+  { season:6, episode:8,  overall:94,  title:"The Mom & Pop Store",      airDate:"1994-11-17", wikiUrl:"https://en.wikipedia.org/wiki/The_Mom_%26_Pop_Store" },
+  { season:6, episode:9,  overall:95,  title:"The Secretary",            airDate:"1994-12-08", wikiUrl:"https://en.wikipedia.org/wiki/The_Secretary_(Seinfeld)" },
+  { season:6, episode:10, overall:96,  title:"The Race",                 airDate:"1994-12-15", wikiUrl:"https://en.wikipedia.org/wiki/The_Race_(Seinfeld)" },
+  { season:6, episode:11, overall:97,  title:"The Switch",               airDate:"1995-01-05", wikiUrl:"https://en.wikipedia.org/wiki/The_Switch_(Seinfeld)" },
+  { season:6, episode:12, overall:98,  title:"The Label Maker",          airDate:"1995-01-19", wikiUrl:"https://en.wikipedia.org/wiki/The_Label_Maker" },
+  { season:6, episode:13, overall:99,  title:"The Scofflaw",             airDate:"1995-01-26", wikiUrl:"https://en.wikipedia.org/wiki/The_Scofflaw_(Seinfeld)" },
+  { season:6, episode:14, overall:100, title:"The Highlights of a Hundred, Part 1", airDate:"1995-02-02", wikiUrl:"https://en.wikipedia.org/wiki/Seinfeld_(season_6)" },
+  { season:6, episode:15, overall:101, title:"The Highlights of a Hundred, Part 2", airDate:"1995-02-02", wikiUrl:"https://en.wikipedia.org/wiki/Seinfeld_(season_6)" },
+  { season:6, episode:16, overall:102, title:"The Beard",                airDate:"1995-02-09", wikiUrl:"https://en.wikipedia.org/wiki/The_Beard_(Seinfeld)" },
+  { season:6, episode:17, overall:103, title:"The Kiss Hello",           airDate:"1995-02-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Kiss_Hello" },
+  { season:6, episode:18, overall:104, title:"The Doorman",              airDate:"1995-02-23", wikiUrl:"https://en.wikipedia.org/wiki/The_Doorman_(Seinfeld)" },
+  { season:6, episode:19, overall:105, title:"The Jimmy",                airDate:"1995-03-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Jimmy_(Seinfeld)" },
+  { season:6, episode:20, overall:106, title:"The Doodle",               airDate:"1995-04-06", wikiUrl:"https://en.wikipedia.org/wiki/The_Doodle_(Seinfeld)" },
+  { season:6, episode:21, overall:107, title:"The Fusilli Jerry",        airDate:"1995-04-27", wikiUrl:"https://en.wikipedia.org/wiki/The_Fusilli_Jerry" },
+  { season:6, episode:22, overall:108, title:"The Diplomat's Club",      airDate:"1995-05-04", wikiUrl:"https://en.wikipedia.org/wiki/The_Diplomat%27s_Club" },
+  { season:6, episode:23, overall:109, title:"The Face Painter",         airDate:"1995-05-11", wikiUrl:"https://en.wikipedia.org/wiki/The_Face_Painter" },
+  { season:6, episode:24, overall:110, title:"The Understudy",           airDate:"1995-05-18", wikiUrl:"https://en.wikipedia.org/wiki/The_Understudy_(Seinfeld)" },
+
+  // --- SEASON 7 ---
+  { season:7, episode:1,  overall:111, title:"The Engagement",           airDate:"1995-09-21", wikiUrl:"https://en.wikipedia.org/wiki/The_Engagement_(Seinfeld)" },
+  { season:7, episode:2,  overall:112, title:"The Postponement",         airDate:"1995-09-28", wikiUrl:"https://en.wikipedia.org/wiki/The_Postponement" },
+  { season:7, episode:3,  overall:113, title:"The Maestro",              airDate:"1995-10-05", wikiUrl:"https://en.wikipedia.org/wiki/The_Maestro_(Seinfeld)" },
+  { season:7, episode:4,  overall:114, title:"The Wink",                 airDate:"1995-10-12", wikiUrl:"https://en.wikipedia.org/wiki/The_Wink_(Seinfeld)" },
+  { season:7, episode:5,  overall:115, title:"The Hot Tub",              airDate:"1995-10-19", wikiUrl:"https://en.wikipedia.org/wiki/The_Hot_Tub_(Seinfeld)" },
+  { season:7, episode:6,  overall:116, title:"The Soup Nazi",            airDate:"1995-11-02", wikiUrl:"https://en.wikipedia.org/wiki/The_Soup_Nazi" },
+  { season:7, episode:7,  overall:117, title:"The Secret Code",          airDate:"1995-11-09", wikiUrl:"https://en.wikipedia.org/wiki/The_Secret_Code_(Seinfeld)" },
+  { season:7, episode:8,  overall:118, title:"The Pool Guy",             airDate:"1995-11-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Pool_Guy" },
+  { season:7, episode:9,  overall:119, title:"The Sponge",               airDate:"1995-12-07", wikiUrl:"https://en.wikipedia.org/wiki/The_Sponge_(Seinfeld)" },
+  { season:7, episode:10, overall:120, title:"The Gum",                  airDate:"1995-12-14", wikiUrl:"https://en.wikipedia.org/wiki/The_Gum_(Seinfeld)" },
+  { season:7, episode:11, overall:121, title:"The Rye",                  airDate:"1996-01-04", wikiUrl:"https://en.wikipedia.org/wiki/The_Rye" },
+  { season:7, episode:12, overall:122, title:"The Caddy",                airDate:"1996-01-25", wikiUrl:"https://en.wikipedia.org/wiki/The_Caddy_(Seinfeld)" },
+  { season:7, episode:13, overall:123, title:"The Seven",                airDate:"1996-02-01", wikiUrl:"https://en.wikipedia.org/wiki/The_Seven_(Seinfeld)" },
+  { season:7, episode:14, overall:124, title:"The Cadillac, Part 1",     airDate:"1996-02-08", wikiUrl:"https://en.wikipedia.org/wiki/The_Cadillac_(Seinfeld)" },
+  { season:7, episode:15, overall:125, title:"The Cadillac, Part 2",     airDate:"1996-02-08", wikiUrl:"https://en.wikipedia.org/wiki/The_Cadillac_(Seinfeld)" },
+  { season:7, episode:16, overall:126, title:"The Shower Head",          airDate:"1996-02-15", wikiUrl:"https://en.wikipedia.org/wiki/The_Shower_Head" },
+  { season:7, episode:17, overall:127, title:"The Doll",                 airDate:"1996-02-22", wikiUrl:"https://en.wikipedia.org/wiki/The_Doll_(Seinfeld)" },
+  { season:7, episode:18, overall:128, title:"The Friar's Club",         airDate:"1996-03-07", wikiUrl:"https://en.wikipedia.org/wiki/The_Friar%27s_Club" },
+  { season:7, episode:19, overall:129, title:"The Wig Master",           airDate:"1996-04-04", wikiUrl:"https://en.wikipedia.org/wiki/The_Wig_Master" },
+  { season:7, episode:20, overall:130, title:"The Calzone",              airDate:"1996-04-25", wikiUrl:"https://en.wikipedia.org/wiki/The_Calzone_(Seinfeld)" },
+  { season:7, episode:21, overall:131, title:"The Bottle Deposit, Part 1", airDate:"1996-05-02", wikiUrl:"https://en.wikipedia.org/wiki/The_Bottle_Deposit" },
+  { season:7, episode:22, overall:132, title:"The Bottle Deposit, Part 2", airDate:"1996-05-02", wikiUrl:"https://en.wikipedia.org/wiki/The_Bottle_Deposit" },
+  { season:7, episode:23, overall:133, title:"The Wait Out",             airDate:"1996-05-09", wikiUrl:"https://en.wikipedia.org/wiki/The_Wait_Out" },
+  { season:7, episode:24, overall:134, title:"The Invitations",          airDate:"1996-05-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Invitations" },
+
+  // --- SEASON 8 ---
+  { season:8, episode:1,  overall:135, title:"The Foundation",           airDate:"1996-09-19", wikiUrl:"https://en.wikipedia.org/wiki/The_Foundation_(Seinfeld)" },
+  { season:8, episode:2,  overall:136, title:"The Soul Mate",            airDate:"1996-09-26", wikiUrl:"https://en.wikipedia.org/wiki/The_Soul_Mate_(Seinfeld)" },
+  { season:8, episode:3,  overall:137, title:"The Bizarro Jerry",        airDate:"1996-10-03", wikiUrl:"https://en.wikipedia.org/wiki/The_Bizarro_Jerry" },
+  { season:8, episode:4,  overall:138, title:"The Little Kicks",         airDate:"1996-10-10", wikiUrl:"https://en.wikipedia.org/wiki/The_Little_Kicks" },
+  { season:8, episode:5,  overall:139, title:"The Package",              airDate:"1996-10-17", wikiUrl:"https://en.wikipedia.org/wiki/The_Package_(Seinfeld)" },
+  { season:8, episode:6,  overall:140, title:"The Fatigues",             airDate:"1996-10-31", wikiUrl:"https://en.wikipedia.org/wiki/The_Fatigues" },
+  { season:8, episode:7,  overall:141, title:"The Checks",               airDate:"1996-11-07", wikiUrl:"https://en.wikipedia.org/wiki/The_Checks_(Seinfeld)" },
+  { season:8, episode:8,  overall:142, title:"The Chicken Roaster",      airDate:"1996-11-14", wikiUrl:"https://en.wikipedia.org/wiki/The_Chicken_Roaster" },
+  { season:8, episode:9,  overall:143, title:"The Abstinence",           airDate:"1996-11-21", wikiUrl:"https://en.wikipedia.org/wiki/The_Abstinence" },
+  { season:8, episode:10, overall:144, title:"The Andrea Doria",         airDate:"1996-12-19", wikiUrl:"https://en.wikipedia.org/wiki/The_Andrea_Doria_(Seinfeld)" },
+  { season:8, episode:11, overall:145, title:"The Little Jerry",         airDate:"1997-01-09", wikiUrl:"https://en.wikipedia.org/wiki/The_Little_Jerry" },
+  { season:8, episode:12, overall:146, title:"The Money",                airDate:"1997-01-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Money_(Seinfeld)" },
+  { season:8, episode:13, overall:147, title:"The Comeback",             airDate:"1997-01-30", wikiUrl:"https://en.wikipedia.org/wiki/The_Comeback_(Seinfeld)" },
+  { season:8, episode:14, overall:148, title:"The Van Buren Boys",       airDate:"1997-02-06", wikiUrl:"https://en.wikipedia.org/wiki/The_Van_Buren_Boys" },
+  { season:8, episode:15, overall:149, title:"The Susie",                airDate:"1997-02-13", wikiUrl:"https://en.wikipedia.org/wiki/The_Susie" },
+  { season:8, episode:16, overall:150, title:"The Pothole",              airDate:"1997-02-20", wikiUrl:"https://en.wikipedia.org/wiki/The_Pothole_(Seinfeld)" },
+  { season:8, episode:17, overall:151, title:"The English Patient",      airDate:"1997-03-13", wikiUrl:"https://en.wikipedia.org/wiki/The_English_Patient_(Seinfeld)" },
+  { season:8, episode:18, overall:152, title:"The Nap",                  airDate:"1997-04-10", wikiUrl:"https://en.wikipedia.org/wiki/The_Nap_(Seinfeld)" },
+  { season:8, episode:19, overall:153, title:"The Yada Yada",            airDate:"1997-04-24", wikiUrl:"https://en.wikipedia.org/wiki/The_Yada_Yada" },
+  { season:8, episode:20, overall:154, title:"The Millennium",           airDate:"1997-05-01", wikiUrl:"https://en.wikipedia.org/wiki/The_Millennium_(Seinfeld)" },
+  { season:8, episode:21, overall:155, title:"The Muffin Tops",          airDate:"1997-05-08", wikiUrl:"https://en.wikipedia.org/wiki/The_Muffin_Tops" },
+  { season:8, episode:22, overall:156, title:"The Summer of George",     airDate:"1997-05-15", wikiUrl:"https://en.wikipedia.org/wiki/The_Summer_of_George" },
+
+  // --- SEASON 9 ---
+  { season:9, episode:1,  overall:157, title:"The Butter Shave",         airDate:"1997-09-25", wikiUrl:"https://en.wikipedia.org/wiki/The_Butter_Shave" },
+  { season:9, episode:2,  overall:158, title:"The Voice",                airDate:"1997-10-02", wikiUrl:"https://en.wikipedia.org/wiki/The_Voice_(Seinfeld)" },
+  { season:9, episode:3,  overall:159, title:"The Serenity Now",         airDate:"1997-10-09", wikiUrl:"https://en.wikipedia.org/wiki/The_Serenity_Now" },
+  { season:9, episode:4,  overall:160, title:"The Blood",                airDate:"1997-10-16", wikiUrl:"https://en.wikipedia.org/wiki/The_Blood_(Seinfeld)" },
+  { season:9, episode:5,  overall:161, title:"The Junk Mail",            airDate:"1997-10-30", wikiUrl:"https://en.wikipedia.org/wiki/The_Junk_Mail_(Seinfeld)" },
+  { season:9, episode:6,  overall:162, title:"The Merv Griffin Show",    airDate:"1997-11-06", wikiUrl:"https://en.wikipedia.org/wiki/The_Merv_Griffin_Show_(Seinfeld)" },
+  { season:9, episode:7,  overall:163, title:"The Slicer",               airDate:"1997-11-13", wikiUrl:"https://en.wikipedia.org/wiki/The_Slicer" },
+  { season:9, episode:8,  overall:164, title:"The Betrayal",             airDate:"1997-11-20", wikiUrl:"https://en.wikipedia.org/wiki/The_Betrayal_(Seinfeld)" },
+  { season:9, episode:9,  overall:165, title:"The Apology",              airDate:"1997-12-11", wikiUrl:"https://en.wikipedia.org/wiki/The_Apology_(Seinfeld)" },
+  { season:9, episode:10, overall:166, title:"The Strike",               airDate:"1997-12-18", wikiUrl:"https://en.wikipedia.org/wiki/The_Strike_(Seinfeld)" },
+  { season:9, episode:11, overall:167, title:"The Dealership",           airDate:"1998-01-08", wikiUrl:"https://en.wikipedia.org/wiki/The_Dealership_(Seinfeld)" },
+  { season:9, episode:12, overall:168, title:"The Reverse Peephole",     airDate:"1998-01-15", wikiUrl:"https://en.wikipedia.org/wiki/The_Reverse_Peephole" },
+  { season:9, episode:13, overall:169, title:"The Cartoon",              airDate:"1998-01-29", wikiUrl:"https://en.wikipedia.org/wiki/The_Cartoon_(Seinfeld)" },
+  { season:9, episode:14, overall:170, title:"The Strongbox",            airDate:"1998-02-05", wikiUrl:"https://en.wikipedia.org/wiki/The_Strongbox_(Seinfeld)" },
+  { season:9, episode:15, overall:171, title:"The Wizard",               airDate:"1998-02-26", wikiUrl:"https://en.wikipedia.org/wiki/The_Wizard_(Seinfeld)" },
+  { season:9, episode:16, overall:172, title:"The Burning",              airDate:"1998-03-19", wikiUrl:"https://en.wikipedia.org/wiki/The_Burning_(Seinfeld)" },
+  { season:9, episode:17, overall:173, title:"The Bookstore",            airDate:"1998-04-09", wikiUrl:"https://en.wikipedia.org/wiki/The_Bookstore_(Seinfeld)" },
+  { season:9, episode:18, overall:174, title:"The Frogger",              airDate:"1998-04-23", wikiUrl:"https://en.wikipedia.org/wiki/The_Frogger_(Seinfeld)" },
+  { season:9, episode:19, overall:175, title:"The Maid",                 airDate:"1998-04-30", wikiUrl:"https://en.wikipedia.org/wiki/The_Maid_(Seinfeld)" },
+  { season:9, episode:20, overall:176, title:"The Puerto Rican Day",     airDate:"1998-05-07", wikiUrl:"https://en.wikipedia.org/wiki/The_Puerto_Rican_Day" },
+  { season:9, episode:21, overall:177, title:"The Chronicle, Part 1",    airDate:"1998-05-14", wikiUrl:"https://en.wikipedia.org/wiki/Seinfeld_(season_9)" },
+  { season:9, episode:22, overall:178, title:"The Chronicle, Part 2",    airDate:"1998-05-14", wikiUrl:"https://en.wikipedia.org/wiki/Seinfeld_(season_9)" },
+  { season:9, episode:23, overall:179, title:"The Finale, Part 1",       airDate:"1998-05-14", wikiUrl:"https://en.wikipedia.org/wiki/The_Finale_(Seinfeld)" },
+  { season:9, episode:24, overall:180, title:"The Finale, Part 2",       airDate:"1998-05-14", wikiUrl:"https://en.wikipedia.org/wiki/The_Finale_(Seinfeld)" },
+];
+
+// ============================================================
+// EPISODE QUIPS — for famous episodes only
+// ============================================================
+const EPISODE_QUIPS = {
+  "The Seinfeld Chronicles":       "The pilot. Nobody watched it. Except, apparently, two specific people.",
+  "Male Unbonding":                "George would not have approved.",
+  "The Pony Remark":               "Manya had a pony. You have a birthday. Life is strange.",
+  "The Jacket":                    "Alton Benes scared the hell out of Jerry. Meanwhile, in another apartment...",
+  "The Chinese Restaurant":        "Cartwright! CARTWRIGHT!",
+  "The Busboy":                    "A man lost his job over a little magazine left near a gas burner. You were set in motion over less.",
+  "The Dog":                       "Everyone was stuck watching a dog named Farfel. Not everyone, though.",
+  "The Library":                   "Bookman. That was his real name. Bookman.",
+  "The Parking Garage":            "Four people lost in a parking garage for 22 minutes. You were the subplot.",
+  "The Red Dot":                   "Cashmere. Discount. Red dot. Conception, apparently.",
+  "The Subway":                    "Everybody on the subway had somewhere weird to be that day.",
+  "The Fix-Up":                    "This episode is literally about setting two people up to sleep together.",
+  "The Boyfriend, Part 1":         "Keith Hernandez. Nice game, pretty boy.",
+  "The Boyfriend, Part 2":         "Second spitter.",
+  "The Pitch":                     "An episode about pitching a show about nothing. And about making you, I guess.",
+  "The Bubble Boy":                "Moops.",
+  "The Cheever Letters":           "Mr. Ross's letters came out of the cabin. You came out nine months later.",
+  "The Outing":                    "Not that there's anything wrong with that.",
+  "The Virgin":                    "Not for long.",
+  "The Contest":                   "Masters of their domain. Well, not that night.",
+  "The Airport":                   "First class. Coach. Doesn't matter which, you're still here.",
+  "The Pick":                      "It wasn't a pick! Didn't matter. Nothing mattered.",
+  "The Junior Mint":               "Who drops a Junior Mint into an open body cavity? Who conceives a child to this? Same energy.",
+  "The Implant":                   "They're real, and they're spectacular. So are you, sort of.",
+  "The Smelly Car":                "B.O. that outlasted the car. You outlasted everything.",
+  "The Pilot, Part 1":             "They made a show about nothing. Your existence is about something. Barely.",
+  "The Pilot, Part 2":             "They made a show about nothing. Your existence is about something. Barely.",
+  "The Mango":                     "She faked. He panicked. Nine months later: you.",
+  "The Puffy Shirt":               "But I don't WANNA be a pirate.",
+  "The Glasses":                   "George thought he saw Jerry's girlfriend kissing his cousin. He was wrong about that. He was right about nothing. You exist anyway.",
+  "The Bris":                      "There was a pig man. That's not related. Or is it.",
+  "The Lip Reader":                "She read lips across a tennis court. What she read is between her and God.",
+  "The Non-Fat Yogurt":            "It had fat in it the whole time. Surprise.",
+  "The Masseuse":                  "She'd rub anyone's back except Jerry's. Rough week for him. Great week for someone.",
+  "The Stall":                     "Can't spare a square? Someone spared something.",
+  "The Marine Biologist":          "The sea was angry that day, my friends. Like an old man trying to send back soup at a deli.",
+  "The Dinner Party":              "They spent the whole episode trying to buy a chocolate babka. That's the level of urgency we're dealing with.",
+  "The Raincoats, Part 1":         "Making out during Schindler's List. Jerry's worst moment. Maybe not the worst moment in that room, though.",
+  "The Raincoats, Part 2":         "Making out during Schindler's List. Jerry's worst moment. Maybe not the worst moment in that room, though.",
+  "The Fire":                      "George shoved an old woman to escape a kitchen fire. You come from better stock. Maybe.",
+  "The Hamptons":                  "Shrinkage. I was in the pool! I WAS IN THE POOL!",
+  "The Opposite":                  "George did the opposite of every instinct he had and his life got better. Somewhere, two people did the same thing.",
+  "The Big Salad":                 "George didn't get credit for the big salad. Nobody gets credit for you either.",
+  "The Pledge Drive":              "Elaine ate a Snickers with a knife and fork. There is nothing normal about any of this.",
+  "The Race":                      "Jerry never admitted he cheated in the race. Nobody's admitting anything here either.",
+  "The Label Maker":               "Regifting. Except you can't regift a person. Legally.",
+  "The Rye":                       "George dangled a fishing line out a window to steal bread from an elderly woman. And you're worried about YOUR origin story?",
+  "The Seven":                     "Seven. They wanted to name a child Seven. Be grateful.",
+  "The Shower Head":               "Low-flow showerhead. That's all the detail you get.",
+  "The Fusilli Jerry":             "Million-to-one shot, doc. Million to one.",
+  "The Face Painter":              "Puddy painted his face for the Devils game. Love makes people do strange things. So does hockey.",
+  "The Engagement":                "George panicked and proposed because a nature show scared him about dying alone. Relatable, honestly.",
+  "The Soup Nazi":                 "NO SOUP FOR YOU. Something else for you, though.",
+  "The Secret Code":               "BOSCO. Now you know.",
+  "The Sponge":                    "Spongeworthy. The highest compliment of 1995.",
+  "The Gum":                       "Lloyd Braun. Gum. That's it. That's the episode.",
+  "The Doll":                      "The doll looked like George's mother. I'm not gonna make a joke here.",
+  "The Cadillac, Part 1":          "Morty lost the condo presidency and it ruined his life. Perspective.",
+  "The Cadillac, Part 2":          "Morty lost the condo presidency and it ruined his life. Perspective.",
+  "The Friar's Club":              "Kramer slept in 20-minute bursts like Da Vinci. Everyone else slept normally. Someone slept very well.",
+  "The Wig Master":                "The pimp suit. The wig. Don't ask.",
+  "The Bottle Deposit, Part 1":    "Newman tried to profit from a Michigan bottle deposit scheme. You were the real deposit.",
+  "The Bottle Deposit, Part 2":    "Newman tried to profit from a Michigan bottle deposit scheme. You were the real deposit.",
+  "The Invitations":               "Susan licked cheap envelopes and died. Your origin story is less tragic. Hopefully.",
+  "The Bizarro Jerry":             "There's a Bizarro version of you that wasn't conceived to Seinfeld. Sad for them.",
+  "The Little Kicks":              "Elaine's dancing. YouTube it. Then imagine that energy in a room with your parents.",
+  "The Chicken Roaster":           "That red Kenny Rogers Roasters glow in Kramer's apartment all night. Set the mood, honestly.",
+  "The Abstinence":                "George got smarter the longer he went without. Then he stopped going without.",
+  "The Comeback":                  "The jerk store called, they're running out of you.",
+  "The Susie":                     "They held a funeral for someone who never existed. You exist, though. Confirmed.",
+  "The Yada Yada":                 "Yada yada yada, you were born.",
+  "The Nap":                       "George built a sleeping compartment under his desk at work. Not relevant. Just a fun fact.",
+  "The Summer of George":          "George had the whole summer planned. Frolf. Nothing. Your parents had other plans.",
+  "The Muffin Tops":               "Top of the muffin TO YOU.",
+  "The Butter Shave":              "Kramer slow-roasted himself in butter. Kenny had seconds. You had a birthday.",
+  "The Serenity Now":              "SERENITY NOW! ...nine months later, no serenity at all, actually.",
+  "The Blood":                     "George tried to combine food, TV, and sex at the same time. Two out of three were happening in your house too.",
+  "The Merv Griffin Show":         "Kramer found a talk show set in a dumpster and hosted a show from his apartment. Peak 1997. You were conceived during peak 1997.",
+  "The Betrayal":                  "This episode runs backwards. You came out forwards.",
+  "The Strike":                    "A Festivus miracle. A Festivus conception. Airing of grievances to follow in nine months.",
+  "The Dealership":                "Twix. It's just about a Twix bar. That's the whole thing.",
+  "The Reverse Peephole":          "Joe Mayo made everyone check their coats. Your parents kept theirs on. Or didn't. I don't know.",
+  "The Frogger":                   "George carried a Frogger machine across a highway. It got hit by a truck. He got nothing. You got a birthday.",
+  "The Puerto Rican Day":          "A flag caught fire by accident. Things got out of hand. In more ways than one, apparently.",
+  "The Finale, Part 1":            "Seventy-six million people watched this. Two of them weren't really watching.",
+  "The Finale, Part 2":            "They went to jail. You went to the womb.",
+};
+
+// Random quips for episodes without a specific one.
+// One of these gets picked at random each time.
+const RANDOM_QUIPS = [
+  "The TV was on. That's all we know for sure.",
+  "Look, we don't make the rules. We just do the math.",
+  "Don't blame us. Blame your parents. And NBC's Thursday night lineup.",
+  "Somewhere, Larry David is also uncomfortable with this information.",
+  "You could have been conceived to anything. A movie. A book. Silence. But no. Seinfeld.",
+  "It was the '90s. There was nothing else on.",
+  "Kramer probably slid through someone's door right about now.",
+  "A show about nothing created something. You.",
+  "Were they watching? Were they not watching? The math doesn't care.",
+  "Nine months is nine months. We checked.",
+  "George would have found a way to complain about this.",
+  "This is the kind of thing Jerry would do a bit about.",
+  "Elaine would have a very strong take on this. We're choosing not to share it.",
+  "NBC, Thursday nights. Must-see TV. Apparently someone took that literally.",
+  "You didn't ask for this information. And yet here we are.",
+  "Could've been worse. Could've been conceived to Mad About You.",
+  "According to science: this episode. According to your parents: no comment.",
+  "Somewhere in a booth at Monk's Cafe, this is being discussed.",
+  "Your parents were watching Seinfeld. Or they had it on in the background. Either way.",
+  "Not every Seinfeld episode is a classic. But this one is yours.",
+  "We're not saying this is definitely what happened. We're saying the math checks out.",
+  "Jason Alexander didn't ask to be part of your origin story. And yet.",
+  "The bass line was playing. You know the one.",
+  "What's the deal with being conceived during a sitcom?",
+];
+
+function getQuip(title) {
+  if (EPISODE_QUIPS[title]) return EPISODE_QUIPS[title];
+  return RANDOM_QUIPS[Math.floor(Math.random() * RANDOM_QUIPS.length)];
+}
+
+// ============================================================
+// DATE LOGIC
+// ============================================================
+const SHOW_START = new Date("1989-07-05T12:00:00");
+const SHOW_END   = new Date("1998-05-14T12:00:00");
+// Normal full-term pregnancy: 36–40 weeks from conception (252–280 days)
+const GESTATION_MIN = 252;
+const GESTATION_MAX = 280;
+
+function dateOffset(birthdayStr, days) {
+  const d = new Date(birthdayStr + "T12:00:00");
+  d.setDate(d.getDate() - days);
+  return d;
+}
+
+function getConceptionWindow(birthdayStr) {
+  // early = if pregnancy ran its longest (280 days), conception was further back
+  // late  = if pregnancy was shorter (252 days), conception was more recent
+  return {
+    early: dateOffset(birthdayStr, GESTATION_MAX),
+    late:  dateOffset(birthdayStr, GESTATION_MIN),
+  };
+}
+
+function windowOverlapsShow(early, late) {
+  // Any part of the conception window must overlap with the show's run
+  return late >= SHOW_START && early <= SHOW_END;
+}
+
+function findEpisodesInWindow(early, late) {
+  const earlyMs = early.getTime();
+  const lateMs  = late.getTime();
+  return EPISODES.filter(ep => {
+    const ms = new Date(ep.airDate + "T12:00:00").getTime();
+    return ms >= earlyMs && ms <= lateMs;
+  });
+}
+
+function findNearestEpisode(targetDate) {
+  const target = targetDate.getTime();
+  let nearest = null;
+  let smallestDiff = Infinity;
+  for (const ep of EPISODES) {
+    const epMs = new Date(ep.airDate + "T12:00:00").getTime();
+    const diff = Math.abs(epMs - target);
+    if (diff < smallestDiff || (diff === smallestDiff && ep.overall < nearest.overall)) {
+      smallestDiff = diff;
+      nearest = ep;
+    }
+  }
+  return nearest;
+}
+
+function formatDate(isoStr) {
+  const d = new Date(isoStr + "T12:00:00");
+  return d.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+}
+
+// ============================================================
+// UI ELEMENTS
+// ============================================================
+const inputPanel  = document.getElementById('input-panel');
+const loadingEl   = document.getElementById('loading');
+const resultPanel = document.getElementById('result-panel');
+const birthdayInput = document.getElementById('birthday-input');
+const calcBtn     = document.getElementById('calc-btn');
+const inputError  = document.getElementById('input-error');
+
+// ============================================================
+// RENDERING
+// ============================================================
+function pickHeroEpisode(episodes, windowEarly, windowLate) {
+  // Prefer episodes with a custom quip (famous ones); tiebreak by closeness to window midpoint
+  const midMs = (windowEarly.getTime() + windowLate.getTime()) / 2;
+  return episodes.slice().sort((a, b) => {
+    const aHasQuip = EPISODE_QUIPS[a.title] ? 0 : 1;
+    const bHasQuip = EPISODE_QUIPS[b.title] ? 0 : 1;
+    if (aHasQuip !== bHasQuip) return aHasQuip - bHasQuip;
+    const aDist = Math.abs(new Date(a.airDate + "T12:00:00").getTime() - midMs);
+    const bDist = Math.abs(new Date(b.airDate + "T12:00:00").getTime() - midMs);
+    return aDist - bDist;
+  })[0];
+}
+
+function otherEpItemHtml(ep) {
+  return `
+    <li class="ep-item">
+      <div class="ep-item-title">${escapeHtml(ep.title)}</div>
+      <div class="ep-item-meta">Season ${ep.season}, Ep ${ep.episode} &bull; Aired ${formatDate(ep.airDate)}</div>
+      <a href="${escapeHtml(ep.wikiUrl)}" target="_blank" rel="noopener noreferrer" class="ep-item-link">View on Wikipedia &rarr;</a>
+    </li>`;
+}
+
+function renderResult({ episodesInWindow, nearest, windowEarly, windowLate }) {
+  const windowStr = `${formatDate(windowEarly.toISOString().slice(0,10))} – ${formatDate(windowLate.toISOString().slice(0,10))}`;
+
+  let hero, others, hiatusMode;
+
+  if (episodesInWindow.length === 0) {
+    // Hiatus — use nearest as hero, flag it
+    hero = nearest;
+    others = [];
+    hiatusMode = true;
+  } else {
+    hero = pickHeroEpisode(episodesInWindow, windowEarly, windowLate);
+    others = episodesInWindow.filter(ep => ep.overall !== hero.overall);
+    hiatusMode = false;
+  }
+
+  const heroQuip = getQuip(hero.title);
+  const windowNote = hiatusMode
+    ? `Show was on hiatus during your window (${windowStr}). Nearest episode:`
+    : `Aired during your window: <em>${windowStr}</em>.`;
+
+  const othersSection = others.length > 0 ? `
+    <div class="others-wrap" id="others-wrap">
+      <button class="others-toggle" id="others-toggle" aria-expanded="false">
+        + ${others.length} other episode${others.length > 1 ? 's' : ''} in your window
+      </button>
+      <ul class="ep-list" id="others-list" style="display:none">
+        ${others.map(otherEpItemHtml).join('')}
+      </ul>
+    </div>` : '';
+
+  resultPanel.innerHTML = `
+    <div class="result-card">
+      <p class="result-label">${hiatusMode ? 'Show was on break. Closest one:' : 'You were conceived to&hellip;'}</p>
+      <h2 class="result-episode-title">${escapeHtml(hero.title)}</h2>
+      <p class="result-meta">
+        <span>Season ${hero.season}, Episode ${hero.episode}</span>
+        &nbsp;&bull;&nbsp;
+        Aired ${formatDate(hero.airDate)}
+      </p>
+      <p class="result-quip">${escapeHtml(heroQuip)}</p>
+      <p class="result-timing">${windowNote}</p>
+      <a href="${escapeHtml(hero.wikiUrl)}" target="_blank" rel="noopener noreferrer" class="wiki-btn">View Episode on Wikipedia &rarr;</a>
+      ${othersSection}
+    </div>
+    <a class="reset-link" id="reset-link" role="button" tabindex="0">Try another birthday</a>
+  `;
+
+  resultPanel.classList.add('visible');
+
+  document.getElementById('reset-link').addEventListener('click', handleReset);
+  document.getElementById('reset-link').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') handleReset();
+  });
+
+  if (others.length > 0) {
+    const toggle = document.getElementById('others-toggle');
+    const list   = document.getElementById('others-list');
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      toggle.textContent = expanded
+        ? `+ ${others.length} other episode${others.length > 1 ? 's' : ''} in your window`
+        : `− ${others.length} other episode${others.length > 1 ? 's' : ''} in your window`;
+      list.style.display = expanded ? 'none' : 'flex';
+    });
+  }
+}
+
+function getEraMessage(year, tooEarly) {
+  if (tooEarly) {
+    if (year < 1900) return `Television wasn't invented for another ${1927 - year}+ years. Whatever your ancestors were doing, there was no laugh track.`;
+    if (year < 1927) return `Television didn't exist yet. Radio was barely a thing. Seinfeld was ${1989 - year} years away.`;
+    if (year < 1948) return `TV existed but almost nobody owned one. A dozen people in New York had a fuzzy 9-inch screen. That's it.`;
+    if (year < 1960) return `I Love Lucy era. Black-and-white sets, rabbit ears, three channels. Seinfeld was still ${1989 - year} years away.`;
+    if (year < 1970) return `Ed Sullivan. The moon landing. No Seinfeld. Jerry was a kid on Long Island.`;
+    if (year < 1978) return `The Brady Bunch. All in the Family. M*A*S*H. Great TV, wrong TV.`;
+    if (year < 1985) return `Saturday Night Live was new. Jerry was doing open mics in New York. The show was coming. Just not yet.`;
+    if (year < 1989) return `Seinfeld premiered July 5, 1989. You were ${1989 - year} year${1989 - year === 1 ? '' : 's'} too early.`;
+    return `The show didn't start until July 1989. Just barely missed.`;
+  } else {
+    if (year < 2000) return `The finale was May 1998. Barely over. Your parents watched it and apparently kept the evening going.`;
+    if (year < 2005) return `Seinfeld was in syndication twice a day on TBS. Your parents had seen every episode multiple times by now.`;
+    if (year < 2010) return `Netflix was mailing out DVDs. Seinfeld was everywhere in reruns. Your parents had moved on from the show. Not from each other.`;
+    if (year < 2015) return `Streaming was taking over. Seinfeld bounced between platforms. Your parents had other things to track.`;
+    if (year < 2020) return `Netflix paid $500 million for the Seinfeld catalog. Every episode, HD, on any device, at any time. Your parents were busy.`;
+    if (year < 2025) return `Seinfeld is over 25 years gone at this point. It's basically a period piece. A really good one. You missed it.`;
+    return `We don't know what year this is for you. But Seinfeld still holds up, wherever you're reading this from.`;
+  }
+}
+
+function renderOutOfRange(tooEarly, conceptionYear) {
+  const msg = getEraMessage(conceptionYear, tooEarly);
+
+  let extraHtml = '';
+  if (!tooEarly) {
+    const pick = EPISODES[Math.floor(Math.random() * EPISODES.length)];
+    const quip = getQuip(pick.title);
+    extraHtml = `
+      <div style="margin-top:1.8rem;border-top:1px solid var(--border);padding-top:1.5rem;text-align:left;">
+        <p class="result-label" style="margin-bottom:0.8rem;">...but if we had to bet on one anyway:</p>
+        <h2 class="result-episode-title">${escapeHtml(pick.title)}</h2>
+        <p class="result-meta" style="margin-bottom:0.8rem;">
+          <span>Season ${pick.season}, Episode ${pick.episode}</span>
+          &nbsp;&bull;&nbsp;
+          Aired ${formatDate(pick.airDate)}
+        </p>
+        <p class="result-quip" style="margin-bottom:1rem;">${escapeHtml(quip)}</p>
+        <a href="${escapeHtml(pick.wikiUrl)}" target="_blank" rel="noopener noreferrer" class="wiki-btn">View Episode on Wikipedia &rarr;</a>
+      </div>`;
+  }
+
+  resultPanel.innerHTML = `
+    <div class="oor-card">
+      <p class="oor-no">No Seinfeld for you.</p>
+      <p class="oor-msg">${msg}</p>
+      ${extraHtml}
+      <a class="reset-link" id="reset-link" role="button" tabindex="0" style="display:inline-block;margin-top:1.4rem;">Try another birthday</a>
+    </div>
+  `;
+
+  resultPanel.classList.add('visible');
+  document.getElementById('reset-link').addEventListener('click', handleReset);
+  document.getElementById('reset-link').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') handleReset();
+  });
+}
+
+// ============================================================
+// SEINFELD BASS SYNTH — from MIDI data, Web Audio API
+// ============================================================
+function playSeinfeldBass() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return Promise.resolve();
+  const ctx = new AC();
+
+  function slap(freq, time, dur) {
+    // Layer 1: percussive click transient (the "slap" part)
+    const bufSize = Math.floor(ctx.sampleRate * 0.025);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 3);
+    }
+    const click = ctx.createBufferSource();
+    click.buffer = buf;
+    const clickFilt = ctx.createBiquadFilter();
+    clickFilt.type = 'bandpass';
+    clickFilt.frequency.value = 1800;
+    clickFilt.Q.value = 0.8;
+    const clickGain = ctx.createGain();
+    clickGain.gain.setValueAtTime(0.35, time);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, time + 0.025);
+    click.connect(clickFilt);
+    clickFilt.connect(clickGain);
+    clickGain.connect(ctx.destination);
+    click.start(time);
+    click.stop(time + 0.03);
+
+    // Layer 2: pitched tone (sawtooth — richer harmonics than triangle)
+    const osc  = ctx.createOscillator();
+    const filt = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    // slight pitch overshoot then settle, like a plucked string
+    osc.frequency.setValueAtTime(freq * 1.04, time);
+    osc.frequency.exponentialRampToValueAtTime(freq, time + 0.03);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.98, time + dur);
+    // filter sweeps down: bright attack, dull tail
+    filt.type = 'lowpass';
+    filt.frequency.setValueAtTime(2200, time);
+    filt.frequency.exponentialRampToValueAtTime(400, time + dur);
+    filt.Q.setValueAtTime(1.5, time);
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(0.45, time + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+    osc.connect(filt);
+    filt.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(time);
+    osc.stop(time + dur + 0.05);
+  }
+
+  // Just the iconic opening gesture from Seinfeld.mid bass track:
+  // the "dun-dun  da-da-DUM" (G1 G1 B1 D2 F2) — everyone knows this bit
+  // Extracted at 110 BPM, then the result reveals as F2 rings out
+  const t = ctx.currentTime + 0.05;
+  slap(49.00, t + 0.000, 0.28);  // G1
+  slap(49.00, t + 0.375, 0.09);  // G1
+  slap(61.74, t + 0.500, 0.18);  // B1
+  slap(73.42, t + 0.750, 0.18);  // D2
+  slap(87.31, t + 1.000, 0.70);  // F2 — let this ring, result pops during it
+
+  return new Promise(r => setTimeout(r, 1600));
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ============================================================
+// EVENT HANDLERS
+// ============================================================
+function handleCalculate() {
+  const val = birthdayInput.value;
+
+  if (!val) {
+    inputError.textContent = 'Pick a date, any date.';
+    birthdayInput.classList.remove('shake');
+    // Force reflow to restart animation
+    void birthdayInput.offsetWidth;
+    birthdayInput.classList.add('shake');
+    birthdayInput.addEventListener('animationend', () => birthdayInput.classList.remove('shake'), { once: true });
+    return;
+  }
+
+  inputError.textContent = '';
+  calcBtn.disabled = true;
+
+  // Show loading
+  inputPanel.style.opacity = '0.4';
+  inputPanel.style.pointerEvents = 'none';
+  loadingEl.style.display = 'block';
+  resultPanel.classList.remove('visible');
+  resultPanel.innerHTML = '';
+
+  playSeinfeldBass().then(() => {
+    loadingEl.style.display = 'none';
+
+    const { early, late } = getConceptionWindow(val);
+
+    if (!windowOverlapsShow(early, late)) {
+      const midYear = new Date((early.getTime() + late.getTime()) / 2).getFullYear();
+      renderOutOfRange(late < SHOW_START, midYear);
+    } else {
+      const episodesInWindow = findEpisodesInWindow(early, late);
+      // midpoint of window for finding the nearest hiatus episode
+      const midMs = (early.getTime() + late.getTime()) / 2;
+      const midDate = new Date(midMs);
+      const nearest = findNearestEpisode(midDate);
+      renderResult({ episodesInWindow, nearest, windowEarly: early, windowLate: late });
+    }
+
+    calcBtn.disabled = false;
+  });
+}
+
+function handleReset() {
+  resultPanel.classList.remove('visible');
+  resultPanel.innerHTML = '';
+  inputPanel.style.opacity = '1';
+  inputPanel.style.pointerEvents = 'auto';
+  birthdayInput.focus();
+}
+
+calcBtn.addEventListener('click', handleCalculate);
+birthdayInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleCalculate();
+});
+</script>
+</body>
+</html>
