@@ -83,6 +83,8 @@
       font-size: 0.85rem;
       color: var(--muted);
       font-style: italic;
+      min-height: 1.3em;
+      transition: opacity 0.4s;
     }
 
     /* TV static decoration */
@@ -498,7 +500,7 @@
     </svg>
     <p class="header-eyebrow">a show about nothing... including your existence</p>
     <h1>Seinfeld Conception<br>Calculator</h1>
-    <p class="header-sub">Enter your birthday, we do the math: you're welcome.</p>
+    <p class="header-sub" id="tagline"></p>
   </header>
 
   <main>
@@ -1212,6 +1214,33 @@ calcBtn.addEventListener('click', handleCalculate);
 birthdayInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') handleCalculate();
 });
+
+// ── Rotating taglines ────────────────────────────────────────
+const TAGLINES = [
+  "Because on that night, your parents weren't the masters of their domain.",
+  "They were watching a show about nothing. Then they did something.",
+  "Find out which episode your parents ignored to make you.",
+  "Find out which episode inspired your dad to use 'The Move'.",
+  "The episode your parents yada yada'd over.",
+  "Because they definitely weren't talking to each other.",
+];
+
+(function initTagline() {
+  const el = document.getElementById('tagline');
+  if (!el) return;
+  let idx = Math.floor(Math.random() * TAGLINES.length);
+  el.textContent = TAGLINES[idx];
+
+  setInterval(() => {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.4s';
+    setTimeout(() => {
+      idx = (idx + 1) % TAGLINES.length;
+      el.textContent = TAGLINES[idx];
+      el.style.opacity = '1';
+    }, 420);
+  }, 5000);
+})();
 </script>
 </body>
 </html>
